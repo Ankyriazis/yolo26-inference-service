@@ -1,0 +1,45 @@
+services:
+  detector:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: yolo26-inference-service:latest
+    ports:
+      - "8000:8000"
+    environment:
+      VISION_MODEL: yolo26n.pt
+      VISION_CONFIDENCE: "0.25"
+      VISION_IMAGE_SIZE: "640"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    restart: unless-stopped
+
+  # NVIDIA GPUs. Requires the NVIDIA Container Toolkit on the host, and an
+  # image built on a CUDA base rather than python:slim - see README.md.
+  # Start with:  docker compose --profile gpu up detector-gpu
+  detector-gpu:
+    profiles: ["gpu"]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+    image: yolo26-inference-service:gpu
+    ports:
+      - "8001:8000"
+    environment:
+      VISION_MODEL: yolo26n.pt
+      VISION_DEVICE: "cuda:0"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

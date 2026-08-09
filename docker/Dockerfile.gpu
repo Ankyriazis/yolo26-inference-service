@@ -1,0 +1,50 @@
+# CUDA image. Requires the NVIDIA Container Toolkit on the host.
+#
+#   docker build -f docker/Dockerfile.gpu -t yolo26-inference-service:gpu .
+#   docker run --gpus all -p 8000:8000 yolo26-inference-service:gpu
+#
+# Considerably larger than the CPU image (the CUDA runtime and cuDNN alone are
+# several GB), so it is worth building only when a GPU is actually present.
+
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3.12 python3.12-venv python3-pip libglib2.0-0 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3.12 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# The CUDA build of torch must come from the PyTorch index; PyPI serves a
+# CPU-only wheel that would silently ignore the GPU this image exists for.
+RUN pip install --index-url https://download.pytorch.org/whl/cu126 torch torchvision
+
+WORKDIR /app
+COPY requirements.txt .
+RUN sed 's/^opencv-python>=/opencv-python-headless>=/' requirements.txt > requirements.docker.txt \
+    && pip install -r requirements.docker.txt
+
+RUN useradd --create-home --uid 10001 vision
+COPY --chown=vision:vision src/ ./src/
+
+ENV PYTHONPATH=/app/src \
+    VISION_MODEL=yolo26n.pt \
+    VISION_DEVICE=cuda:0 \
+    ULTRALYTICS_DIR=/home/vision/.ultralytics
+
+USER vision
+RUN python -c "from ultralytics import YOLO; YOLO('yolo26n.pt')"
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=3 \
+    CMD curl -fsS http://localhost:8000/readyz || exit 1
+
+CMD ["uvicorn", "vision.service:app", "--host", "0.0.0.0", "--port", "8000"]
