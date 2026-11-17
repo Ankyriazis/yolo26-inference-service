@@ -8,8 +8,11 @@ every claim this README makes.
 v1 answered "can this model be served?". v2 answers the questions a Solutions Architect is
 actually asked: *which runtime, which precision, which model size, how many requests per GPU,
 what does the tail look like under load, what does an image cost, and what does accuracy pay
-for speed?* Every number below was measured on one machine (an RTX 4060 desktop, specified at
-the end of [docs/BENCHMARKS.md](docs/BENCHMARKS.md)); none is quoted from a vendor.
+for speed?* And, for aerial imagery: *does a 2026 real-time detection transformer beat YOLO26 on
+oriented boxes?* Every number below was measured on one machine (an RTX 4060 desktop, specified
+at the end of [docs/BENCHMARKS.md](docs/BENCHMARKS.md)); none is quoted from a vendor. The one
+exception, DOTA accuracy for the oriented-box models, which only the official evaluation server
+can score, is labelled where it appears.
 
 ![Detections drawn on a street scene: one bus and four people, each boxed and labelled with a confidence score](docs/detection-example.jpg)
 
@@ -50,6 +53,7 @@ peak throughput 1.5×.
 | How far does the HTTP service scale? | v1: **91.5 req/s**. v2: **968 req/s** (4 workers, one GPU); 606 within a 50 ms p99 |
 | How many camera streams per GPU? | Within a 50 ms p99: **20 at 30 fps**, 40 at 15 fps, 121 at 5 fps |
 | Lowest single-image latency? | **1.49 ms p50**: static batch-1 engine replayed as a CUDA graph (dynamic engine: 2.24 ms) |
+| CNN or transformer for oriented (aerial) boxes? | **CNN at small sizes, a tie from M up.** RiO-DETRv2 (successor to ECCV 2026's RiO-DETR) gives **78–87%** of YOLO26-OBB's throughput at N/S and **99–104%** at M–X, at similar published accuracy |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/results/pareto.dark.png">
@@ -71,6 +75,22 @@ mAP50-95 is measured on all 5,000 COCO val2017 images.
   <source media="(prefers-color-scheme: dark)" srcset="docs/results/stages.dark.png">
   <img alt="Stacked bars of milliseconds per image by pipeline stage for five pipeline variants" src="docs/results/stages.light.png">
 </picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/results/obb-throughput.dark.png">
+  <img alt="Line chart of RiO-DETRv2 speed as a percentage of YOLO26-OBB at five model sizes; at batch 8 it rises from below 80% at N to about 100% from M upward, and at batch 1 it stays below 100% at every size" src="docs/results/obb-throughput.light.png">
+</picture>
+
+Oriented boxes on 1024×1024 DOTA tiles: YOLO26-OBB against RiO-DETRv2, a real-time detection
+transformer, every size on one TensorRT 11 FP16 harness (finding 11). Medians of five passes.
+
+| Size | YOLO26-OBB b8 img/s | RiO-DETRv2 b8 img/s | RiO-DETRv2 vs YOLO26-OBB | b1 p50 ms, YOLO26-OBB / RiO-DETRv2 |
+|---|---|---|---|---|
+| N | 621 | 481 | −22% | 2.06 / 3.10 |
+| S | 294 | 255 | −13% | 3.60 / 4.91 |
+| M | 145 | 151 | +4% | 7.21 / 7.78 |
+| L | 114 | 113 | −1% | 9.13 / 10.46 |
+| X | 61 | 64 | +4% | 16.08 / 17.84 |
 
 Full tables, every chart, and the per-concurrency detail: **[docs/BENCHMARKS.md](docs/BENCHMARKS.md)**.
 
@@ -111,7 +131,11 @@ flags and the INT8 calibrator are gone, and precision must be baked into the ONN
 (NVIDIA ModelOpt: AutoCast for FP16, explicit Q/DQ nodes for INT8). That splits the build in
 two, and the split is the deployment model this repo uses: **CI** runs ModelOpt once and ships
 a precision-baked, self-describing ONNX; **each GPU node** compiles it with TensorRT alone, because
-an engine is only valid for the GPU model and TensorRT version that built it.
+an engine is only valid for the GPU model and TensorRT version that built it. Size the CI runner
+for it: AutoCast runs the model on the CPU and keeps every intermediate tensor, **26 GB of RAM**
+for yolo26l-obb at batch 8 and 1024 px, which failed the L and X builds here. Its calibration
+input is one image repeated, so batch 1 chooses exactly the same FP32 nodes at an eighth of the
+memory; the exporters now calibrate at batch 1.
 
 **5. The default optimisation profile wastes VRAM.** Ultralytics' dynamic engines accept up to
 2× the image size and tune for the largest batch, so a yolo26n context reserves **1,432 MB**.
@@ -152,6 +176,18 @@ have "satisfied" `nvidia-modelopt[onnx]` by replacing the CUDA 13 ONNX Runtime w
 build. `YOLO_AUTOINSTALL=false` is set by the package itself; dependencies come from `uv.lock`
 and nothing else.
 
+**11. A paper's latency chart is not your latency.** RiO-DETRv2's README plots its nano model
+level with YOLO26n-obb at about 2.8 ms on a T4, but its YOLO26 points match Ultralytics' own
+published T4 figures, from a different harness. Put both through one harness here (same FP16
+step, same TensorRT build, the engine alone) and RiO-DETRv2-N takes **1.5× the latency at
+batch 1** (3.10 vs 2.06 ms) and gives **78% of the throughput at batch 8**. CUDA-graph replay
+still leaves 1.7× (2.64 vs 1.55 ms), so the gap is GPU work, not launch overhead. It is a
+small-model effect: from M upward the two are within ±4% at batch 8. The harness alone moves
+results as much: the same RiO-DETRv2-N engine on CUDA's legacy default stream, where a quick
+benchmark script usually runs it, is **19% slower**; YOLO26n-obb moves by 1%.
+Accuracy is close to a tie on the authors' own single-scale re-scoring: level on mAP50-95, with
+RiO-DETRv2 0.3–1.4 points ahead on AP50. Compare models on your harness, never across papers.
+
 ## Decision guide
 
 | If you need… | Choose | Because (measured) |
@@ -163,6 +199,7 @@ and nothing else.
 | Big-model accuracy on a budget GPU | yolo26l INT8 *or* yolo26m FP16, not yolo26x INT8 | x INT8 is dominated by m FP16 on both axes |
 | No GPU at all | ONNX Runtime on CPU | 14.4 ms p50 at batch 1 (PyTorch on CPU: 20.5 ms) |
 | One artifact across GPU SKUs | Ship a precision-baked ONNX, compile per node | TensorRT engines are SKU- and version-specific |
+| Oriented boxes (aerial, satellite) | YOLO26-OBB, TensorRT FP16; RiO-DETRv2 only from M up, for AP50 | N/S: 1.4–1.5× lower latency, 15–29% more throughput; M–X: level at batch 8 |
 
 ## Architecture
 
@@ -318,6 +355,25 @@ uv run python tools/bench_service.py      # HTTP concurrency sweeps incl. v1 fro
 uv run python tools/report.py             # charts + docs/BENCHMARKS.md
 ```
 
+Oriented boxes (YOLO26-OBB against RiO-DETRv2, 1024×1024). RiO-DETRv2 needs its source and a
+few extra modules once; the docstring of `tools/export_rio.py` has the two commands. Its weights
+are downloaded and checked against the authors' SHA256 sums.
+
+```bash
+R=~/src/RiO-DETRv2
+for s in n s; do                                  # batch 16; m/l/x top out at 8 on an 8 GB GPU
+  uv run python tools/export.py --model yolo26$s-obb.pt --imgsz 1024 --batch 16 --out-dir $C/models
+  uv run python tools/export_rio.py --rio-src $R --size $s --batch 16
+  uv run python tools/export.py --model yolo26$s-obb.pt --imgsz 1024 --static --batch 1 --out-dir $C/models
+  uv run python tools/export_rio.py --rio-src $R --size $s --static --batch 1
+done
+for s in m l x; do
+  uv run python tools/export.py --model yolo26$s-obb.pt --imgsz 1024 --batch 8 --out-dir $C/models
+  uv run python tools/export_rio.py --rio-src $R --size $s --batch 8
+done
+uv run python tools/bench_obb.py          # speed (3 passes) + FP16 parity on dota8, ~25 min
+```
+
 The raw results are committed in [`results/`](results/) as JSON, with the machine fingerprint
 (GPU, driver, CPU, library versions) embedded in each file.
 
@@ -336,6 +392,7 @@ Built and measured against, November 2026:
 | OpenCV | 5.1 (headless) |
 | FastAPI / uvicorn | 0.163 / 0.54 |
 | NVIDIA driver | 610.88 |
+| RiO-DETRv2 (oriented boxes) | [RicePasteM/RiO-DETRv2](https://github.com/RicePasteM/RiO-DETRv2) @ `a49bd0a`, DOTA-v1.0 single-scale checkpoints |
 
 ## Limits
 
@@ -347,6 +404,10 @@ Built and measured against, November 2026:
 - **INT8 is post-training quantisation** with max calibration on 128 images. More calibration data,
   other calibration methods or quantisation-aware training would likely recover some of the
   2.4–5.4 mAP.
+- **Oriented-box accuracy is published, not measured.** DOTA test labels are withheld, and
+  RiO-DETRv2 trains on train+val, so no local split is fair to both; the speed comparison is
+  measured, the accuracy comparison is each author's. The service itself serves axis-aligned
+  boxes; the oriented-box models are benchmarked, not yet served.
 - **Single-node, single-GPU serving.** Scale-out is by replicas; there is no multi-GPU sharding
   of one model, which YOLO-sized models do not need.
 - **No authentication.** Put it behind a gateway before exposing it.

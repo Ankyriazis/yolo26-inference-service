@@ -177,6 +177,12 @@ def apply_precision(onnx_file: Path, precision: str, shape, dynamic: bool, calib
     from ultralytics.utils.export.engine import modelopt_quantize_onnx
 
     print(f"[{precision}] baking precision into the graph with NVIDIA ModelOpt")
+    if precision == "fp16":
+        # AutoCast calibrates on one image repeated across the batch, so a bigger
+        # batch adds no information, only memory: ModelOpt holds every
+        # intermediate tensor of its reference run on the CPU - 26 GB for
+        # yolo26l-obb at batch 8 and 1024 px. Batch 1 picks the same nodes.
+        shape = (1, *shape[1:])
     return Path(
         modelopt_quantize_onnx(
             str(onnx_file), PRECISION_CODE[precision], calib, shape, dynamic, prefix="[modelopt]"
