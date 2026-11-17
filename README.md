@@ -17,12 +17,26 @@ the end of [docs/BENCHMARKS.md](docs/BENCHMARKS.md)); none is quoted from a vend
 
 Over real HTTP, with real uploads, one RTX 4060 now serves **968 requests/s at peak, 10.6× the
 v1 service** (91.5) measured on the same machine, and **606 requests/s within a 50 ms p99, 6.7×
-v1**. Each step that got there, and the bottleneck it moved, is in the chart.
+v1**. Each step that got there, and the bottleneck it moved, is in the chart and the table.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/results/service-throughput.dark.png">
   <img alt="Line chart of HTTP requests per second against concurrency for seven configurations; v1 stays near 90, the four-worker TensorRT configuration reaches 968" src="docs/results/service-throughput.light.png">
 </picture>
+
+| Service configuration (yolo26n, one RTX 4060) | Peak req/s | req/s within p99 ≤ 50 ms | p50, one request in flight | GPU util at peak | What capped it |
+|---|---|---|---|---|---|
+| v1: PyTorch, model run inside the async handler | 92 | 90 | 11.3 ms | 37% | One CPU core: inference blocks the event loop |
+| v2: PyTorch on an inference thread | 119 | 119 | 10.7 ms | 38% | Batch-1 inference, one at a time |
+| + TensorRT FP16 | 324 | 324 | 6.9 ms | 58% | Batch-1 inference, one at a time |
+| + dynamic batching (≤ 32 images, 2 ms window) | 500 | 500 | 9.9 ms | 50% | The single event loop; GPU half idle |
+| + raw-body upload (`/detect/raw`) | 528 | 528 | 9.8 ms | 54% | The single event loop |
+| **+ 4 worker processes sharing the GPU** | **968** | **606** | 9.4 ms | 91% | The GPU |
+| Batching + nvJPEG decode instead | 428 | 420 | 8.1 ms | 46% | Decode queued on the inference thread |
+
+Batching is not free for a lone request: at one request in flight it adds 3 ms to the p50
+(6.9 → 9.9 ms), 2.6 ms of it spent waiting out the batching window, and in exchange raises
+peak throughput 1.5×.
 
 | Question | Measured answer (yolo26n unless stated, RTX 4060) |
 |---|---|
@@ -34,12 +48,24 @@ v1**. Each step that got there, and the bottleneck it moved, is in the chart.
 | Decode JPEGs on the GPU? | **Not on this card.** nvJPEG halves end-to-end throughput; 16 CPU threads decode 2.5× faster |
 | GPU vs CPU? | 908 vs 76 img/s (**12×**) against the best CPU path (ONNX Runtime, i7-14700F) |
 | How far does the HTTP service scale? | v1: **91.5 req/s**. v2: **968 req/s** (4 workers, one GPU); 606 within a 50 ms p99 |
+| How many camera streams per GPU? | Within a 50 ms p99: **20 at 30 fps**, 40 at 15 fps, 121 at 5 fps |
 | Lowest single-image latency? | **1.49 ms p50**: static batch-1 engine replayed as a CUDA graph (dynamic engine: 2.24 ms) |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/results/pareto.dark.png">
   <img alt="Scatter of COCO mAP against GPU milliseconds per image for five YOLO26 sizes at FP16 and INT8 on TensorRT" src="docs/results/pareto.light.png">
 </picture>
+
+Every YOLO26 size at both precisions. Throughput is in-process at batch 8 on TensorRT;
+mAP50-95 is measured on all 5,000 COCO val2017 images.
+
+| Model | FP16 mAP | FP16 img/s | INT8 mAP | INT8 img/s | INT8 vs FP16 |
+|---|---|---|---|---|---|
+| yolo26n | 40.2 | 908 | 37.2 | 830 | −9% speed, −3.0 mAP |
+| yolo26s | 47.7 | 581 | 45.3 | 691 | +19% speed, −2.4 mAP |
+| yolo26m | 52.5 | 320 | 49.6 | 469 | +47% speed, −2.9 mAP |
+| yolo26l | 54.1 | 262 | 51.6 | 392 | +49% speed, −2.5 mAP |
+| yolo26x | 56.9 | 146 | 51.5 | 238 | +63% speed, −5.4 mAP |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/results/stages.dark.png">
@@ -60,13 +86,15 @@ pipeline here (`GpuDetector`) letterboxes, normalises and rescales on the device
 one `(batch, 300, 6)` tensor of a few kilobytes: 907 img/s at 88% utilisation, and **identical
 COCO accuracy (40.26 mAP both ways)**. Optimising the model further would have bought nothing.
 
-**2. Then the bottleneck moves again, into Python's HTTP layer.** Served over HTTP, one uvicorn
-worker with TensorRT and full batches (31.7 images on average) tops out at 430 req/s with the GPU
-**54% idle**: one event loop parses every upload and serialises every answer, about 3 ms of CPU per
-request. v1 hit the same wall far sooner, at 86 req/s, one core pegged by its blocking handler. Two
-remedies, both measured: a raw-body endpoint (`/detect/raw`, no multipart framing) adds ~11%;
-**four worker processes sharing the GPU**, each with its own engine (affordable because a context
-needs 0.3 GB, finding 5), reach **968 req/s at peak and 606 within a
+**2. Then the bottleneck moves again, into Python's HTTP layer.** Served over HTTP by one uvicorn
+worker, TensorRT with dynamic batching peaks at **500 req/s with the GPU half idle**, and the
+process uses under 3 of the host's 28 CPU threads. More clients fill the batches (31.5 images on
+average at 64 in flight), yet throughput *falls* to 430–450 req/s: the limit is the one event loop
+that parses every upload and serialises every answer, not the GPU. v1 hit its wall far sooner, at
+92 req/s, one core pegged by a handler that ran the model on the event loop. Two remedies, both
+measured: a raw-body endpoint (`/detect/raw`, no multipart parsing) adds 6% at peak (528 req/s)
+and 11% under overload; **four worker processes sharing the GPU**, each with its own engine
+(affordable because a context needs 0.3 GB, finding 5), reach **968 req/s at peak and 606 within a
 50 ms p99**, with the GPU 91% busy. In Kubernetes the same shape is four single-worker pods per
 GPU via time-slicing ([`deploy/k8s/gpu-sharing.yaml`](deploy/k8s/gpu-sharing.yaml)), which also
 keeps every pod's `/metrics` whole.
@@ -92,9 +120,10 @@ less, and the whole serving process, CUDA context included, measured 0.85 GB. On
 that is what decides how many replicas fit. A static batch-1 engine needs 12 MB.
 At the other end, yolo26x **cannot be built for batch 32 on an 8 GB card at all**; it tops out at 16.
 
-**6. PCIe is the next GPU-side bottleneck.** Uploading eight decoded 1080p frames (2.6 MB each) takes
-2.4 ms per batch against 5.0 ms of inference. The next optimisation is overlapping copies with
-compute (pinned buffers, a second CUDA stream), or shrinking frames before they cross the bus.
+**6. PCIe is the next GPU-side bottleneck.** Uploading a batch of eight decoded 810×1080 images
+(2.6 MB each) takes 2.4 ms, against 5.0 ms of inference for the same batch. The next
+optimisation is overlapping copies with compute (pinned buffers, a second CUDA stream), or
+shrinking frames before they cross the bus.
 
 **7. GPU JPEG decode is not free.** The RTX 4060, like most GeForce and workstation cards, has
 no hardware JPEG engine, so nvJPEG runs on the same SMs as inference: it halved end-to-end
@@ -105,10 +134,11 @@ low concurrency (281 vs 234 req/s at 4 in flight) and halves server CPU, but cap
 which resource binds first. It is off by default (`VISION_GPU_DECODE`); on A100/H100/L4-class
 parts with NVJPG hardware the answer may flip, so measure there.
 
-**8. NVML utilisation is a poor scaling signal.** It reports "a kernel was running", and reads
-88–98% across configurations whose throughput differs by 6×. Autoscaling here keys on request
-rate against benchmarked per-replica capacity, with queue depth as a backstop
-(`deploy/k8s/observability.yaml`).
+**8. NVML utilisation is a poor scaling signal.** It reports "a kernel was running", not how
+much work got done. At batch 8, PyTorch FP32 reads 95% at 384 img/s while TensorRT FP16 reads 90%
+at 908 img/s, and across the five model sizes it reads 89–98% while throughput differs by 6×.
+Autoscaling here keys on request rate against benchmarked per-replica capacity, with queue depth
+as a backstop (`deploy/k8s/observability.yaml`).
 
 **9. Two latency traps on Windows hosts.** Windows rounds event-loop timeouts up to its 15.6 ms
 timer tick, which silently turned the 2 ms batching window into 16 ms and tripled single-request
@@ -138,7 +168,7 @@ and nothing else.
 
 ```mermaid
 flowchart LR
-    C["Clients"] -->|"multipart image"| API["FastAPI · uvicorn<br/>413 on size · 400 on bad image"]
+    C["Clients"] -->|"image: multipart or raw body"| API["FastAPI · uvicorn<br/>413 on size · 400 on bad image"]
     API -->|"thread pool"| DEC["OpenCV decode<br/>(nvJPEG optional)"]
     DEC --> Q["Dynamic batcher<br/>bounded queue<br/>≤ 32 images · 2 ms window"]
     Q -.->|"queue full: 503 + Retry-After"| C
@@ -168,7 +198,7 @@ flowchart LR
 - **Overload is refused, not queued.** Past `VISION_MAX_QUEUE_DEPTH` the service answers 503 with
   `Retry-After` at once; a fast "no" lets a load balancer retry elsewhere.
 - **One bad image fails alone.** A corrupt upload in a batch fails that request only.
-- **The HTTP layer never imports ultralytics or torch.** The detector is injected, so all 47 tests,
+- **The HTTP layer never imports ultralytics or torch.** The detector is injected, so all 48 tests,
   batching and load shedding included, run in under two seconds with no GPU.
 
 ## Quickstart
@@ -260,8 +290,9 @@ docker compose -f docker/compose.yaml --profile gpu up --build detector-gpu  # N
 docker compose -f docker/compose.yaml --profile observability up          # + Prometheus
 ```
 
-**Kubernetes** ([`deploy/k8s/`](deploy/k8s/)). One replica per GPU. An init container compiles the
-precision-baked ONNX for whatever GPU the pod landed on, into a host cache keyed by GPU model and
+**Kubernetes** ([`deploy/k8s/`](deploy/k8s/)). Four single-worker replicas per GPU, sharing it by
+time-slicing (finding 2). An init container compiles the precision-baked ONNX for whatever GPU
+the pod landed on, into a host cache keyed by GPU model and
 TensorRT version (`tools/export.py --onnx … --engine-cache …`), so only the first pod per node and
 SKU pays the build. Startup, readiness and liveness probes point at different endpoints; a `preStop`
 sleep lets in-flight batches drain. KEDA scales on request rate against the measured per-replica

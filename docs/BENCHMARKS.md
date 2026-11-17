@@ -62,11 +62,11 @@ Every YOLO26 size on TensorRT at FP16 and INT8. Accuracy is measured here, on al
 
 ## The service under load
 
-Real HTTP: each virtual client uploads the 134 KB sample JPEG as multipart form data, waits for the JSON answer, and sends the next. The load generator runs in 4 processes on the same machine as the server, so both compete for the same CPU - a conservative setup for the server. *Capacity @ SLO* is the highest throughput reached with p99 under the target and no request shed.
+Real HTTP: each virtual client uploads the 134 KB sample JPEG (as multipart form data, or as the raw request body for the raw-body configurations), waits for the JSON answer, and sends the next. The load generator runs in 4 processes on the same machine as the server, so both compete for the same CPU - a conservative setup for the server. *Capacity @ SLO* is the highest throughput reached with p99 under the target and no request shed.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="results/service-throughput.dark.png">
-  <img alt="Line chart of requests per second against concurrency for six service configurations; dynamic batching on TensorRT scales highest." src="results/service-throughput.light.png">
+  <img alt="Line chart of requests per second against concurrency for seven service configurations; four TensorRT workers sharing the GPU scale highest." src="results/service-throughput.light.png">
 </picture>
 
 <picture>
