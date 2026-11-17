@@ -523,6 +523,307 @@ def section_accuracy(accuracy: dict | None) -> str:
     )
 
 
+OBB_FAMILIES = [("yolo26-obb", "YOLO26-OBB"), ("riov2", "RiO-DETRv2")]
+
+
+def obb_value(speed, family, size, static, mode, batch, field):
+    """A result field, the median over the benchmark passes (robust to one
+    disturbed pass on a desktop GPU); None if not measured."""
+    import statistics
+
+    values = [
+        field(entry)
+        for record in speed
+        if (record["family"], record["size"], record["static"]) == (family, size, static)
+        for entry in record["results"]
+        if (entry["mode"], entry["batch"]) == (mode, batch)
+    ]
+    return statistics.median(values) if values else None
+
+
+def obb_pass_spread(speed) -> float:
+    """Largest relative throughput difference between passes of one measurement."""
+    groups: dict[tuple, list[float]] = {}
+    for record in speed:
+        for entry in record["results"]:
+            key = (record["engine"], entry["mode"], entry["batch"])
+            groups.setdefault(key, []).append(entry["images_per_second"])
+    spreads = [(max(v) - min(v)) / min(v) for v in groups.values() if len(v) > 1]
+    return max(spreads) if spreads else 0.0
+
+
+def obb_median_stability(speed) -> float:
+    """Largest relative move of any median when one pass is dropped: how much
+    a single disturbed pass could have changed a reported figure."""
+    import statistics
+
+    groups: dict[tuple, list[float]] = {}
+    for record in speed:
+        for entry in record["results"]:
+            key = (record["engine"], entry["mode"], entry["batch"])
+            groups.setdefault(key, []).append(entry["images_per_second"])
+    worst = 0.0
+    for values in groups.values():
+        if len(values) < 3:
+            continue
+        median = statistics.median(values)
+        for i in range(len(values)):
+            rest = statistics.median(values[:i] + values[i + 1 :])
+            worst = max(worst, abs(rest - median) / median)
+    return worst
+
+
+def section_obb(obb: dict | None) -> str:
+    if not obb or not obb.get("speed"):
+        return ""
+    speed, published = obb["speed"], obb.get("published", {})
+    sizes = [s for s in "nsmlx" if any(r["size"] == s for r in speed)]
+
+    def ips(family, size, batch=8):
+        return obb_value(
+            speed, family, size, False, "plain", batch, lambda e: e["images_per_second"]
+        )
+
+    def p50(family, size, static=False, mode="plain"):
+        return obb_value(speed, family, size, static, mode, 1, lambda e: e["latency_ms"]["p50"])
+
+    def activation(family, size):
+        return next(
+            (
+                r["activation_memory_mb"]
+                for r in speed
+                if r["family"] == family and r["size"] == size and not r["static"]
+            ),
+            None,
+        )
+
+    # RiO-DETRv2's speed as a share of YOLO26-OBB's at the same size: one
+    # measure (relative images per second), so both batch sizes share one axis.
+    def relative(size, batch):
+        if batch == 8:
+            y, r = ips("yolo26-obb", size), ips("riov2", size)
+            return 100 * r / y if y and r else None
+        y, r = p50("yolo26-obb", size), p50("riov2", size)
+        return 100 * y / r if y and r else None  # latency, inverted to images per second
+
+    for mode, theme in THEMES.items():
+        fig, ax = axes(
+            theme,
+            "RiO-DETRv2 speed relative to YOLO26-OBB, size for size",
+            "YOLO26-OBB = 100% · 1024×1024 DOTA tiles · TensorRT 11 FP16 · RTX 4060 · "
+            "one harness for both",
+        )
+        ax.axhline(100, color=theme["muted"], linewidth=1, linestyle=(0, (4, 3)), zorder=2)
+        ax.annotate(
+            "YOLO26-OBB",
+            (0, 100),
+            xytext=(0, 5),
+            textcoords="offset points",
+            fontsize=8,
+            color=theme["secondary"],
+        )
+        for slot, (batch, name) in enumerate(((8, "batch 8 throughput"), (1, "batch 1 latency"))):
+            pts = [(i, relative(s, batch)) for i, s in enumerate(sizes)]
+            pts = [(i, v) for i, v in pts if v]
+            line(ax, theme, slot, [p[0] for p in pts], [p[1] for p in pts], name)
+        ax.set_ylim(50, 115)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _p: f"{v:.0f}%"))
+        ax.set_xticks(range(len(sizes)), [s.upper() for s in sizes])
+        ax.set_xlim(-0.3, len(sizes) + 0.2)
+        label_axis(ax, theme, "model size", "RiO-DETRv2 images / second, % of YOLO26-OBB")
+        legend(ax, theme, loc="lower right")
+        save(fig, "obb-throughput", mode)
+
+    speed_rows, ratios_b8, ratios_b1 = [], {}, {}
+    for s in sizes:
+        y8, r8 = ips("yolo26-obb", s), ips("riov2", s)
+        y1, r1 = p50("yolo26-obb", s), p50("riov2", s)
+        if y8 and r8:
+            ratios_b8[s] = r8 / y8
+        if y1 and r1:
+            ratios_b1[s] = r1 / y1
+        speed_rows.append(
+            [
+                s.upper(),
+                fmt(y1, 2),
+                fmt(r1, 2),
+                fmt(y8, 0),
+                fmt(r8, 0),
+                f"{(r8 / y8 - 1) * 100:+.0f}%" if y8 and r8 else "–",
+                f"{fmt(activation('yolo26-obb', s), 0)} / {fmt(activation('riov2', s), 0)}",
+            ]
+        )
+
+    latency_rows, stream_penalty = [], {}
+    for s in sizes:
+        for family, name in OBB_FAMILIES:
+            own, legacy = p50(family, s), p50(family, s, mode="default_stream")
+            if own is None:
+                continue
+            if legacy:
+                stream_penalty[(family, s)] = legacy / own - 1
+            latency_rows.append(
+                [
+                    f"{name}-{s.upper()}",
+                    fmt(own, 2),
+                    f"{fmt(legacy, 2)} ({(legacy / own - 1) * 100:+.0f}%)" if legacy else "–",
+                    fmt(p50(family, s, static=True), 2),
+                    fmt(p50(family, s, static=True, mode="cuda_graph"), 2),
+                ]
+            )
+
+    parity_rows = [
+        [
+            r["label"],
+            f"{r['fp16_vs_fp32']['matched']}/{r['fp16_vs_fp32']['detections']}",
+            fmt(r["fp16_vs_fp32"]["mean_abs_score_diff"], 4),
+            f"{r['ground_truth_fp16']['recall'] * 100:.1f}%",
+        ]
+        for r in obb.get("parity", [])
+    ]
+
+    yolo_pub, rio_pub = published.get("yolo26-obb", {}), published.get("riov2", {})
+    accuracy_rows = [
+        [
+            s.upper(),
+            fmt(yolo_pub.get("params_m", {}).get(s), 1),
+            fmt(rio_pub.get("params_m", {}).get(s), 1),
+            f"{fmt(yolo_pub.get('map50_95', {}).get(s), 1)} / {fmt(yolo_pub.get('map50', {}).get(s), 1)}",
+            f"{fmt(rio_pub.get('map50_95', {}).get(s), 1)} / {fmt(rio_pub.get('map50', {}).get(s), 1)}",
+        ]
+        for s in sizes
+    ]
+
+    spread, stability = obb_pass_spread(speed), obb_median_stability(speed)
+    passes = len({r.get("pass") for r in speed})
+    sessions = len({r.get("session", 0) for r in speed})
+    when = f" over {sessions} sessions" if sessions > 1 else ""
+
+    def span(ratios, group, pct):
+        values = [ratios[s] for s in group if s in ratios]
+        if not values:
+            return "–"
+        if pct:
+            return f"{min(values) * 100:.0f}–{max(values) * 100:.0f}%"
+        return f"{min(values):.2f}–{max(values):.2f}×"
+
+    small, large = [s for s in "ns" if s in sizes], [s for s in "mlx" if s in sizes]
+    headline = (
+        f"At {' and '.join(s.upper() for s in small)}, RiO-DETRv2 delivers "
+        f"**{span(ratios_b8, small, True)}** of YOLO26-OBB's throughput at batch 8 and takes "
+        f"**{span(ratios_b1, small, False)}** its latency at batch 1. "
+    )
+    if large:
+        extra_ms = {
+            s: 1000 / ips("riov2", s) - 1000 / ips("yolo26-obb", s)
+            for s in sizes
+            if ips("riov2", s) and ips("yolo26-obb", s)
+        }
+        small_ms = [extra_ms[s] for s in small if s in extra_ms]
+        large_ms = [extra_ms[s] for s in large if s in extra_ms]
+        headline += (
+            f"From {large[0].upper()} upward the gap closes: **{span(ratios_b8, large, True)}** of "
+            f"the throughput, **{span(ratios_b1, large, False)}** the latency. Per image at batch "
+            f"8, RiO-DETRv2 minus YOLO26-OBB is {min(small_ms):+.2f} to {max(small_ms):+.2f} ms at "
+            f"the small sizes and {min(large_ms):+.2f} to {max(large_ms):+.2f} ms at the large ones."
+        )
+    parts = [
+        "## Oriented boxes: YOLO26-OBB against RiO-DETRv2",
+        "Two real-time oriented-box detectors trained on DOTA-v1.0, at every size, on one harness: "
+        "YOLO26-OBB (a CNN with an NMS-free head) and RiO-DETRv2 (a detection transformer, the "
+        "successor to ECCV 2026's RiO-DETR, https://github.com/RicePasteM/RiO-DETRv2). Both are "
+        "exported to ONNX "
+        "with their post-processing inside the graph, given FP16 by the same ModelOpt AutoCast "
+        "step, and built by the same TensorRT 11 code with the same 1024×1024 profile tuned for "
+        "batch 8 (`tools/export.py`, `tools/export_rio.py`). Timing is the engine alone, input "
+        "already on the GPU, one synchronise per batch, each engine in its own process. The "
+        f"matrix ran {passes} times{when}, interleaved, and each figure is the median of the "
+        "passes. "
+        "This GPU also drives the desktop, and a pass that shares it with another application "
+        f"runs slow: the widest gap between two passes of one measurement is {spread * 100:.0f}%. "
+        "The medians are robust to that - dropping any single pass moves none of them by more "
+        f"than {stability * 100:.1f}%.",
+        headline,
+        picture(
+            "obb-throughput",
+            "Line chart of RiO-DETRv2 speed as a percentage of YOLO26-OBB at five model sizes; "
+            "at batch 8 it rises from below 80% at N to about 100% from M upward, and at batch 1 "
+            "it stays below 100% at every size.",
+        ),
+        table(
+            [
+                "Size",
+                "YOLO26-OBB b1 p50 ms",
+                "RiO-DETRv2 b1 p50 ms",
+                "YOLO26-OBB b8 img/s",
+                "RiO-DETRv2 b8 img/s",
+                "RiO-DETRv2 vs YOLO26-OBB at b8",
+                "Activation MB (YOLO / RiO)",
+            ],
+            speed_rows,
+        ),
+    ]
+    if latency_rows:
+        parts += [
+            "Batch-1 latency four ways. The dynamic engine on its own CUDA stream is the figure "
+            "above. The same engine on CUDA's legacy default stream - where TensorRT adds "
+            "synchronisations of its own, and where a quick benchmark script usually runs it - "
+            "shows how much the harness alone moves a result. Static batch-1 engines (N and S) "
+            "check that neither family is judged on a profile tuned for batch 8, and CUDA-graph "
+            "replay removes the per-launch CPU cost.",
+            table(
+                [
+                    "Model",
+                    "Dynamic b1 p50 ms",
+                    "Same, default stream",
+                    "Static b1 p50 ms",
+                    "Static b1, CUDA graph",
+                ],
+                latency_rows,
+            ),
+        ]
+    parts += [
+        "### Accuracy, as published",
+        "Not measured here. DOTA-v1.0 test labels are withheld - scores come from the official "
+        "evaluation server - and RiO-DETRv2 trains on train+val, so no local split is fair to "
+        "both. These are each author's test-server results, and the protocols differ: "
+        f"YOLO26-OBB is {yolo_pub.get('protocol', '?').split(', ')[-1]} "
+        f"({yolo_pub.get('source', '')}), RiO-DETRv2 is {rio_pub.get('protocol', '?').split(', ')[-1]} "
+        f"({rio_pub.get('source', '')}). The RiO-DETRv2 README's own accuracy-latency chart "
+        "re-scores YOLO26-OBB single-scale and puts the two within about 0.2 mAP50-95 of each "
+        "other at every size, with RiO-DETRv2 0.3–1.4 points ahead on AP50; those values are "
+        "read off a chart, so they are not tabulated.",
+        table(
+            [
+                "Size",
+                "YOLO26-OBB params M",
+                "RiO-DETRv2 params M",
+                "YOLO26-OBB mAP50-95 / AP50 (multi-scale)",
+                "RiO-DETRv2 mAP50-95 / AP50 (single-scale)",
+            ],
+            accuracy_rows,
+        ),
+    ]
+    if parity_rows:
+        parts += [
+            "FP16 parity, on the 8 DOTA tiles of Ultralytics' dota8: the share of FP32 detections "
+            "(score ≥ 0.3) each FP16 engine reproduces - same class, rotated-box ProbIoU ≥ 0.9 - "
+            "against the same graph in FP32 on ONNX Runtime, and recall of the labelled objects. "
+            "The tiles are from the training data, so the recall column proves the boxes, angles "
+            "and classes decode correctly, not accuracy.",
+            table(
+                [
+                    "Engine",
+                    "FP32 detections reproduced",
+                    "Mean score difference",
+                    "dota8 recall (FP16)",
+                ],
+                parity_rows,
+            ),
+        ]
+    return "\n\n".join(parts)
+
+
 SERVICE_ORDER = [
     "v1",
     "pt-nobatch",
@@ -802,6 +1103,7 @@ def main() -> int:
     pipeline = load("pipeline")
     accuracy = load("accuracy")
     service = load("service")
+    obb = load("obb")
     if not pipeline:
         raise SystemExit("results/pipeline.json is missing; run tools/bench_pipeline.py first")
 
@@ -809,14 +1111,17 @@ def main() -> int:
     parts = [
         "# Benchmark results",
         "Generated by `tools/report.py` from the JSON in `results/`. Every number below was "
-        "measured on the machine described at the end; nothing is quoted from elsewhere. "
-        "Reproduce with the commands in the README.",
+        "measured on the machine described at the end. The one exception is labelled where it "
+        "appears: DOTA accuracy for the oriented-box models, which only the official evaluation "
+        "server can score, is each author's published result. Reproduce with the commands in "
+        "the README.",
         section_runtime(pipeline),
         section_stages(pipeline),
         section_scaling(pipeline, accuracy),
         service_text,
         section_capacity(capacity, pipeline, service),
         section_accuracy(accuracy),
+        section_obb(obb),
         section_decode(pipeline),
         section_cpu(pipeline),
         machine_block(pipeline, accuracy, service),
