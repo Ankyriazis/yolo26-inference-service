@@ -14,7 +14,12 @@ at the end of [docs/BENCHMARKS.md](docs/BENCHMARKS.md)); none is quoted from a v
 exception, DOTA accuracy for the oriented-box models, which only the official evaluation server
 can score, is labelled where it appears.
 
-![Detections drawn on a street scene: one bus and four people, each boxed and labelled with a confidence score](docs/detection-example.jpg)
+![Animation cycling through eight photographs - a Paris street, a dog on a boat, a baseball game, a city bus, a harbour train, a police motorcycle at night, a dog with a frisbee, a cat on a laptop - each with yolo26n's boxes and labels drawn, and a caption giving the object count and a latency of about 2 ms](docs/media/coco-detections.gif)
+
+yolo26n on TensorRT FP16, through the same GPU pipeline the service runs. Each frame's latency is
+measured while it is rendered (pre-process, inference and post-process, median of 30 runs at
+batch 1). Photos: COCO val2017, CC BY 2.0 ([credits](docs/media/CREDITS.md)); rendered by
+`tools/make_media.py`.
 
 ## Results at a glance
 
@@ -91,6 +96,14 @@ transformer, every size on one TensorRT 11 FP16 harness (finding 11). Medians of
 | M | 145 | 151 | +4% | 7.21 / 7.78 |
 | L | 114 | 113 | −1% | 9.13 / 10.46 |
 | X | 61 | 64 | +4% | 16.08 / 17.84 |
+
+![Animation of six aerial tiles - a marina, tennis courts, two airport aprons, sports grounds, a baseball diamond - each shown twice side by side with YOLO26-OBB-S's rotated boxes on the left and RiO-DETRv2-S's on the right, coloured by class with a legend, and each model's object count and batch-1 latency, 3.60 and 4.91 ms](docs/media/obb-detections.gif)
+
+The same tiles through both S-size engines: rotated boxes, colour by class, confidence ≥ 0.4.
+Detection is close to identical; on the second airport apron YOLO26-OBB finds a plane that
+RiO-DETRv2 misses, and on the last tile RiO-DETRv2 finds a third diamond. Latencies are the
+batch-1 medians from the table. Tiles: DOTA-v1.0 via Ultralytics' dota8
+([credits](docs/media/CREDITS.md)).
 
 Full tables, every chart, and the per-concurrency detail: **[docs/BENCHMARKS.md](docs/BENCHMARKS.md)**.
 
@@ -289,6 +302,35 @@ VISION_MODEL=yolo26n-fp16-dyn32.engine uv run uvicorn vision.service:app --port 
 | `GET` | `/gpu` | Live NVML state: utilisation, memory, clocks, PCIe link |
 | `GET` | `/docs` | OpenAPI documentation |
 
+The real answers for `data/bus.jpg` on the TensorRT FP16 engine: the image from
+`/detect/annotated`, and the JSON from `/detect` (abridged to two of its five detections).
+
+<img src="docs/detection-example.jpg" width="360" alt="A city bus and four pedestrians on a Madrid street, drawn by the service: a box around the bus labelled bus 0.93 and around each person labelled with a confidence between 0.52 and 0.92">
+
+```bash
+curl -s -F file=@data/bus.jpg localhost:8000/detect
+```
+
+```json
+{
+  "detections": [
+    {"x1": 5.90625, "y1": 229.078125, "x2": 807.46875, "y2": 749.671875,
+     "confidence": 0.92578125, "class_id": 5, "class_name": "bus"},
+    {"x1": 46.6171875, "y1": 398.8828125, "x2": 237.09375, "y2": 901.96875,
+     "confidence": 0.91552734375, "class_id": 0, "class_name": "person"}
+  ],
+  "count": 5,
+  "inference_ms": 2.75,
+  "batch_size": 1,
+  "image": {"width": 810, "height": 1080},
+  "stages_ms": {"upload_decode": 0.46, "preprocess": 0.081, "inference": 1.985, "postprocess": 0.157},
+  "server_ms": 9.48,
+  "model": "yolo26n-fp16-dyn32.engine", "backend": "tensorrt", "precision": "fp16", "device": "cuda:0"
+}
+```
+
+`server_ms` includes the 2 ms batching window a lone request waits out (see the service table).
+
 ## Configuration
 
 Every setting has a working default; the service starts with no configuration at all.
@@ -353,6 +395,7 @@ uv run python tools/bench_pipeline.py     # runtime x precision x batch x size, 
 uv run python tools/bench_accuracy.py     # COCO mAP for 14 configurations, ~30 min
 uv run python tools/bench_service.py      # HTTP concurrency sweeps incl. v1 from git, ~15 min
 uv run python tools/report.py             # charts + docs/BENCHMARKS.md
+uv run python tools/make_media.py         # the README's GIFs and annotated images
 ```
 
 Oriented boxes (YOLO26-OBB against RiO-DETRv2, 1024×1024). RiO-DETRv2 needs its source and a

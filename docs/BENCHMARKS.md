@@ -250,6 +250,10 @@ At N and S, RiO-DETRv2 delivers **78–87%** of YOLO26-OBB's throughput at batch
 | L | 9.13 | 10.46 | 114 | 113 | -1% | 736 / 976 |
 | X | 16.08 | 17.84 | 61 | 64 | +4% | 1,104 / 1,269 |
 
+![Six aerial tiles, each shown twice side by side with YOLO26-OBB-S's rotated boxes on the left and RiO-DETRv2-S's on the right, coloured by class](media/obb-detections.gif)
+
+The S engines on six dota8 tiles, rendered by `tools/make_media.py` ([credits](media/CREDITS.md)).
+
 Batch-1 latency four ways. The dynamic engine on its own CUDA stream is the figure above. The same engine on CUDA's legacy default stream - where TensorRT adds synchronisations of its own, and where a quick benchmark script usually runs it - shows how much the harness alone moves a result. Static batch-1 engines (N and S) check that neither family is judged on a profile tuned for batch 8, and CUDA-graph replay removes the per-launch CPU cost.
 
 | Model | Dynamic b1 p50 ms | Same, default stream | Static b1 p50 ms | Static b1, CUDA graph |
