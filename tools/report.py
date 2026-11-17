@@ -763,6 +763,13 @@ def section_obb(obb: dict | None) -> str:
             speed_rows,
         ),
     ]
+    if (DOCS / "media" / "obb-detections.gif").exists():
+        parts.append(
+            "![Six aerial tiles, each shown twice side by side with YOLO26-OBB-S's rotated "
+            "boxes on the left and RiO-DETRv2-S's on the right, coloured by class]"
+            "(media/obb-detections.gif)\n\nThe S engines on six dota8 tiles, rendered by "
+            "`tools/make_media.py` ([credits](media/CREDITS.md))."
+        )
     if latency_rows:
         parts += [
             "Batch-1 latency four ways. The dynamic engine on its own CUDA stream is the figure "
