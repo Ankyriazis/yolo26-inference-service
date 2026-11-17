@@ -1,0 +1,32 @@
+# Four serving pods per physical GPU, via the NVIDIA device plugin's time-slicing.
+#
+# Why share a GPU at all: once the model runs on TensorRT, one Python process
+# cannot feed it. The HTTP layer (request parsing, JSON) saturates a core
+# first: one worker peaked at 528 req/s with the GPU about 50% busy; four
+# workers on the same GPU reached 968 req/s at 91% (README, finding 2).
+#
+# Why pods rather than `uvicorn --workers 4` in one pod: /metrics is
+# per-process. With four workers behind one pod IP, each scrape reaches one
+# of them, so request-rate autoscaling would undercount by ~4x. One worker per
+# pod keeps every pod's metrics whole. Four pods fit in 8 GB because each
+# engine context needs ~0.3 GB with a fixed-size optimisation profile
+# (finding 5), not the 1.4 GB the default profile reserves.
+#
+# Apply to the device plugin (GPU Operator: reference it from the ClusterPolicy
+# `devicePlugin.config`), then label GPU nodes:
+#   kubectl label node <node> nvidia.com/device-plugin.config=yolo26
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nvidia-device-plugin-config
+  namespace: gpu-operator
+data:
+  yolo26: |
+    version: v1
+    sharing:
+      timeSlicing:
+        renameByDefault: false
+        failRequestsGreaterThanOne: true
+        resources:
+          - name: nvidia.com/gpu
+            replicas: 4

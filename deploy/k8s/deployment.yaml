@@ -1,0 +1,134 @@
+# One replica = one single-worker process = one engine context. With GPU
+# time-slicing (gpu-sharing.yaml) four replicas share each physical GPU: one
+# Python process cannot keep a TensorRT engine busy, four can. Scale out by
+# replicas (observability.yaml).
+#
+# A TensorRT engine is only valid for the GPU model and TensorRT version that
+# built it, so the image does not ship one. CI ships the portable artifact: an
+# ONNX graph with its precision already baked in by ModelOpt
+# (tools/export.py --format onnx --precision fp16). On each node the init
+# container compiles it for the GPU it finds - a TensorRT build, ~1-2 minutes -
+# into a hostPath cache keyed by GPU and TensorRT version, so every later pod
+# on the same node and SKU starts in seconds.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yolo26
+  labels: {app: yolo26}
+spec:
+  replicas: 4  # one physical GPU, four time-sliced replicas
+  selector:
+    matchLabels: {app: yolo26}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels: {app: yolo26}
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      tolerations:
+        - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
+
+      initContainers:
+        - name: build-engine
+          image: ghcr.io/ankyriazis/yolo26-inference-service:2.0.0-gpu
+          command: ["python", "/opt/tools/export.py"]
+          args:
+            - --onnx=/artifacts/yolo26n-fp16-dyn32.onnx
+            - --engine-cache=/engine-cache
+            - --link-to=/run/model/model.engine
+          resources:
+            limits: {nvidia.com/gpu: 1, memory: 6Gi}
+          securityContext: &locked
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          env:
+            - {name: YOLO_CONFIG_DIR, value: /tmp/ultralytics}
+          volumeMounts:
+            - {name: artifacts, mountPath: /artifacts, readOnly: true}
+            - {name: engine-cache, mountPath: /engine-cache}
+            - {name: model, mountPath: /run/model}
+            - {name: tmp, mountPath: /tmp}
+
+      containers:
+        - name: detector
+          image: ghcr.io/ankyriazis/yolo26-inference-service:2.0.0-gpu
+          ports:
+            - {name: http, containerPort: 8000}
+          # Clients should POST the image as the raw body to /detect/raw:
+          # multipart parsing is the costliest thing this process does.
+          env:
+            - {name: VISION_MODEL, value: /run/model/model.engine}
+            - {name: VISION_PIPELINE, value: gpu}
+            - {name: VISION_MAX_BATCH_SIZE, value: "32"}
+            - {name: VISION_MAX_BATCH_WAIT_MS, value: "2"}
+            # Shed load rather than queue past the latency SLO. At the
+            # benchmarked service rate, 256 waiting requests is ~0.2 s of work.
+            - {name: VISION_MAX_QUEUE_DEPTH, value: "256"}
+          resources:
+            requests: {cpu: "4", memory: 3Gi}
+            limits: {nvidia.com/gpu: 1, memory: 6Gi}
+          securityContext: *locked
+          # Liveness and readiness are different questions. Never point
+          # liveness at /readyz: a pod still warming up would be killed.
+          startupProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 10
+            failureThreshold: 3
+          lifecycle:
+            # Let the endpoint controller stop routing here before the
+            # process stops accepting, so in-flight batches finish.
+            preStop:
+              sleep: {seconds: 5}
+          volumeMounts:
+            - {name: model, mountPath: /run/model, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+
+      volumes:
+        # Model artifacts as an OCI image (Kubernetes image volumes, KEP-4639).
+        # On clusters without image volumes, use a PVC or an init-time download.
+        - name: artifacts
+          image:
+            reference: ghcr.io/ankyriazis/yolo26-artifacts:2.0.0
+            pullPolicy: IfNotPresent
+        - name: engine-cache
+          hostPath: {path: /var/cache/yolo26-engines, type: DirectoryOrCreate}
+        - name: model
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yolo26
+  labels: {app: yolo26}
+spec:
+  selector: {app: yolo26}
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: yolo26
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: {app: yolo26}

@@ -1,0 +1,1930 @@
+{
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i7-14700F",
+    "cpu_threads": 28,
+    "os": "Windows 11",
+    "python": "3.13.15",
+    "timestamp": "2026-11-17T20:42:04+0200",
+    "torch": "2.15.0+cu132",
+    "cuda": "13.2",
+    "cudnn": 92600,
+    "gpu": "NVIDIA GeForce RTX 4060",
+    "gpu_memory_gb": 8.0,
+    "gpu_sm": "8.9",
+    "gpu_sms": 24,
+    "tensorrt": "11.4.0.106",
+    "onnxruntime": "1.32.0",
+    "ultralytics": "8.4.215",
+    "cv2": "5.1.0",
+    "fastapi": "0.163.1",
+    "driver": "610.88",
+    "gpu_power_limit_w": 130.0,
+    "gpu_power_reported": false
+  },
+  "image_bytes": 137419,
+  "duration_s": 8.0,
+  "load_processes": 6,
+  "configs": [
+    {
+      "key": "v1",
+      "label": "v1: PyTorch FP32, blocking handler, no batching",
+      "v1": true,
+      "env": {
+        "VISION_MODEL": "yolo26n.pt"
+      },
+      "ready_seconds": 3.3,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 696,
+          "ok": 696,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 87.0,
+          "latency_ms": {
+            "p50": 11.28,
+            "p90": 12.104,
+            "p99": 14.881,
+            "mean": 11.472,
+            "min": 10.542,
+            "max": 19.048,
+            "n": 696
+          },
+          "server_cpu_pct": 92.3,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 184,
+            "utilization_mean_pct": 29.4,
+            "utilization_max_pct": 41,
+            "memory_peak_mb": 1119.2,
+            "sm_clock_mean_mhz": 2096,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 43
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 719,
+          "ok": 719,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 89.9,
+          "latency_ms": {
+            "p50": 21.719,
+            "p90": 24.101,
+            "p99": 28.199,
+            "mean": 22.184,
+            "min": 20.092,
+            "max": 30.441,
+            "n": 719
+          },
+          "server_cpu_pct": 97.6,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 183,
+            "utilization_mean_pct": 38.8,
+            "utilization_max_pct": 43,
+            "memory_peak_mb": 1119.2,
+            "sm_clock_mean_mhz": 1537,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 42
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 732,
+          "ok": 732,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 91.5,
+          "latency_ms": {
+            "p50": 43.054,
+            "p90": 49.802,
+            "p99": 62.912,
+            "mean": 43.497,
+            "min": 21.963,
+            "max": 72.796,
+            "n": 732
+          },
+          "server_cpu_pct": 96.7,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 184,
+            "utilization_mean_pct": 37.1,
+            "utilization_max_pct": 41,
+            "memory_peak_mb": 1111.7,
+            "sm_clock_mean_mhz": 1527,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 42
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 724,
+          "ok": 724,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 90.5,
+          "latency_ms": {
+            "p50": 86.739,
+            "p90": 91.431,
+            "p99": 118.736,
+            "mean": 87.481,
+            "min": 13.729,
+            "max": 140.671,
+            "n": 724
+          },
+          "server_cpu_pct": 97.4,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 185,
+            "utilization_mean_pct": 38.9,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 1110.8,
+            "sm_clock_mean_mhz": 1523,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 41
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 722,
+          "ok": 722,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 90.2,
+          "latency_ms": {
+            "p50": 171.049,
+            "p90": 192.782,
+            "p99": 267.703,
+            "mean": 174.004,
+            "min": 24.993,
+            "max": 309.906,
+            "n": 722
+          },
+          "server_cpu_pct": 97.5,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 188,
+            "utilization_mean_pct": 36.9,
+            "utilization_max_pct": 41,
+            "memory_peak_mb": 1111.4,
+            "sm_clock_mean_mhz": 1643,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 41
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 706,
+          "ok": 706,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 88.2,
+          "latency_ms": {
+            "p50": 342.154,
+            "p90": 394.095,
+            "p99": 461.781,
+            "mean": 342.083,
+            "min": 48.687,
+            "max": 488.942,
+            "n": 706
+          },
+          "server_cpu_pct": 97.9,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 190,
+            "utilization_mean_pct": 36.5,
+            "utilization_max_pct": 44,
+            "memory_peak_mb": 1110.7,
+            "sm_clock_mean_mhz": 1628,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 42
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 648,
+          "ok": 648,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 81.0,
+          "latency_ms": {
+            "p50": 723.192,
+            "p90": 783.021,
+            "p99": 849.831,
+            "mean": 714.744,
+            "min": 569.861,
+            "max": 903.414,
+            "n": 648
+          },
+          "server_cpu_pct": 97.8,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 200,
+            "utilization_mean_pct": 37.0,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 1118.0,
+            "sm_clock_mean_mhz": 1691,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 43
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 582,
+          "ok": 582,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 72.8,
+          "latency_ms": {
+            "p50": 1358.252,
+            "p90": 1522.488,
+            "p99": 1590.521,
+            "mean": 1303.918,
+            "min": 899.694,
+            "max": 1596.67,
+            "n": 582
+          },
+          "server_cpu_pct": 97.2,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 208,
+            "utilization_mean_pct": 37.0,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 1119.4,
+            "sm_clock_mean_mhz": 1567,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 43
+          }
+        }
+      ]
+    },
+    {
+      "key": "pt-nobatch",
+      "label": "v2: PyTorch FP32, no batching",
+      "env": {
+        "VISION_MODEL": "yolo26n.pt",
+        "VISION_MAX_BATCH_SIZE": "1"
+      },
+      "ready_seconds": 2.5,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 740,
+          "ok": 740,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 92.5,
+          "latency_ms": {
+            "p50": 10.668,
+            "p90": 11.203,
+            "p99": 14.42,
+            "mean": 10.793,
+            "min": 10.046,
+            "max": 16.113,
+            "n": 740
+          },
+          "server_cpu_pct": 92.7,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 0.01,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 34.2,
+            "utilization_max_pct": 40,
+            "memory_peak_mb": 1085.8,
+            "sm_clock_mean_mhz": 2273,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 45
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 950,
+          "ok": 950,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 118.8,
+          "latency_ms": {
+            "p50": 16.111,
+            "p90": 19.127,
+            "p99": 23.485,
+            "mean": 16.804,
+            "min": 15.017,
+            "max": 55.717,
+            "n": 950
+          },
+          "server_cpu_pct": 132.4,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 4.02,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 38.2,
+            "utilization_max_pct": 43,
+            "memory_peak_mb": 1082.1,
+            "sm_clock_mean_mhz": 2679,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 943,
+          "ok": 943,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 117.9,
+          "latency_ms": {
+            "p50": 33.369,
+            "p90": 36.343,
+            "p99": 41.791,
+            "mean": 33.81,
+            "min": 30.396,
+            "max": 48.638,
+            "n": 943
+          },
+          "server_cpu_pct": 133.8,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 20.81,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 41.4,
+            "utilization_max_pct": 45,
+            "memory_peak_mb": 1080.4,
+            "sm_clock_mean_mhz": 2741,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 919,
+          "ok": 919,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 114.9,
+          "latency_ms": {
+            "p50": 68.491,
+            "p90": 72.76,
+            "p99": 75.953,
+            "mean": 69.072,
+            "min": 66.358,
+            "max": 77.596,
+            "n": 919
+          },
+          "server_cpu_pct": 131.5,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 55.78,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 41.2,
+            "utilization_max_pct": 45,
+            "memory_peak_mb": 1070.4,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 876,
+          "ok": 876,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 109.5,
+          "latency_ms": {
+            "p50": 139.298,
+            "p90": 157.061,
+            "p99": 171.079,
+            "mean": 143.636,
+            "min": 135.494,
+            "max": 174.863,
+            "n": 876
+          },
+          "server_cpu_pct": 133.1,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 128.45,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 164,
+            "utilization_mean_pct": 40.1,
+            "utilization_max_pct": 43,
+            "memory_peak_mb": 1070.7,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 871,
+          "ok": 871,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 108.9,
+          "latency_ms": {
+            "p50": 281.616,
+            "p90": 288.51,
+            "p99": 319.135,
+            "mean": 283.184,
+            "min": 274.647,
+            "max": 319.495,
+            "n": 871
+          },
+          "server_cpu_pct": 130.8,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 265.97,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 166,
+            "utilization_mean_pct": 41.4,
+            "utilization_max_pct": 43,
+            "memory_peak_mb": 1070.5,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 815,
+          "ok": 815,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 101.9,
+          "latency_ms": {
+            "p50": 576.773,
+            "p90": 613.825,
+            "p99": 627.789,
+            "mean": 581.302,
+            "min": 548.958,
+            "max": 629.404,
+            "n": 815
+          },
+          "server_cpu_pct": 130.6,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 551.75,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 170,
+            "utilization_mean_pct": 40.6,
+            "utilization_max_pct": 51,
+            "memory_peak_mb": 1075.1,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 773,
+          "ok": 773,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 96.6,
+          "latency_ms": {
+            "p50": 1136.703,
+            "p90": 1143.581,
+            "p99": 1150.779,
+            "mean": 1136.132,
+            "min": 1122.332,
+            "max": 1153.17,
+            "n": 773
+          },
+          "server_cpu_pct": 136.6,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 1059.14,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 177,
+            "utilization_mean_pct": 40.8,
+            "utilization_max_pct": 52,
+            "memory_peak_mb": 1075.1,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        }
+      ]
+    },
+    {
+      "key": "trt16-nobatch",
+      "label": "v2: TensorRT FP16, no batching",
+      "env": {
+        "VISION_MODEL": "yolo26n-fp16-dyn32.engine",
+        "VISION_MAX_BATCH_SIZE": "1"
+      },
+      "ready_seconds": 2.5,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 1140,
+          "ok": 1140,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 142.5,
+          "latency_ms": {
+            "p50": 6.92,
+            "p90": 7.418,
+            "p99": 8.453,
+            "mean": 7.011,
+            "min": 6.405,
+            "max": 13.558,
+            "n": 1140
+          },
+          "server_cpu_pct": 91.4,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 0.01,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 30.3,
+            "utilization_max_pct": 38,
+            "memory_peak_mb": 1507.6,
+            "sm_clock_mean_mhz": 2244,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 45
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 1944,
+          "ok": 1944,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 243.0,
+          "latency_ms": {
+            "p50": 7.972,
+            "p90": 9.268,
+            "p99": 13.479,
+            "mean": 8.216,
+            "min": 6.662,
+            "max": 48.394,
+            "n": 1944
+          },
+          "server_cpu_pct": 165.3,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 0.17,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 46.0,
+            "utilization_max_pct": 66,
+            "memory_peak_mb": 1503.0,
+            "sm_clock_mean_mhz": 2639,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 46
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 2553,
+          "ok": 2553,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 319.1,
+          "latency_ms": {
+            "p50": 12.128,
+            "p90": 13.486,
+            "p99": 22.245,
+            "mean": 12.512,
+            "min": 8.313,
+            "max": 42.734,
+            "n": 2553
+          },
+          "server_cpu_pct": 210.7,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 4.09,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 53.0,
+            "utilization_max_pct": 59,
+            "memory_peak_mb": 1502.7,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 2591,
+          "ok": 2591,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 323.9,
+          "latency_ms": {
+            "p50": 23.907,
+            "p90": 25.44,
+            "p99": 38.678,
+            "mean": 24.633,
+            "min": 19.843,
+            "max": 46.221,
+            "n": 2591
+          },
+          "server_cpu_pct": 220.5,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 16.44,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 57.9,
+            "utilization_max_pct": 60,
+            "memory_peak_mb": 1502.4,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 2361,
+          "ok": 2361,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 295.1,
+          "latency_ms": {
+            "p50": 50.467,
+            "p90": 65.059,
+            "p99": 78.077,
+            "mean": 53.885,
+            "min": 44.527,
+            "max": 89.213,
+            "n": 2361
+          },
+          "server_cpu_pct": 203.3,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 44.38,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 52.6,
+            "utilization_max_pct": 58,
+            "memory_peak_mb": 1502.4,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 2542,
+          "ok": 2542,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 317.8,
+          "latency_ms": {
+            "p50": 96.79,
+            "p90": 108.049,
+            "p99": 137.818,
+            "mean": 99.121,
+            "min": 91.484,
+            "max": 141.952,
+            "n": 2542
+          },
+          "server_cpu_pct": 216.9,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 90.51,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 164,
+            "utilization_mean_pct": 57.5,
+            "utilization_max_pct": 59,
+            "memory_peak_mb": 1506.8,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 2468,
+          "ok": 2468,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 308.5,
+          "latency_ms": {
+            "p50": 197.972,
+            "p90": 215.086,
+            "p99": 244.748,
+            "mean": 202.523,
+            "min": 190.919,
+            "max": 263.611,
+            "n": 2468
+          },
+          "server_cpu_pct": 223.7,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 191.65,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 165,
+            "utilization_mean_pct": 53.0,
+            "utilization_max_pct": 59,
+            "memory_peak_mb": 1505.5,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 2283,
+          "ok": 2283,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 285.4,
+          "latency_ms": {
+            "p50": 417.459,
+            "p90": 460.073,
+            "p99": 469.173,
+            "mean": 424.225,
+            "min": 384.582,
+            "max": 474.564,
+            "n": 2283
+          },
+          "server_cpu_pct": 218.7,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 402.55,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 170,
+            "utilization_mean_pct": 51.6,
+            "utilization_max_pct": 59,
+            "memory_peak_mb": 1502.4,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        }
+      ]
+    },
+    {
+      "key": "trt16-batch",
+      "label": "v2: TensorRT FP16, dynamic batching (up to 32, 2 ms)",
+      "env": {
+        "VISION_MODEL": "yolo26n-fp16-dyn32.engine",
+        "VISION_MAX_BATCH_SIZE": "32",
+        "VISION_MAX_BATCH_WAIT_MS": "2"
+      },
+      "ready_seconds": 3.0,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 803,
+          "ok": 803,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 100.4,
+          "latency_ms": {
+            "p50": 9.929,
+            "p90": 10.915,
+            "p99": 12.865,
+            "mean": 9.957,
+            "min": 8.683,
+            "max": 15.911,
+            "n": 803
+          },
+          "server_cpu_pct": 70.1,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 2.57,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 25.4,
+            "utilization_max_pct": 92,
+            "memory_peak_mb": 1688.4,
+            "sm_clock_mean_mhz": 2029,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 50
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 1176,
+          "ok": 1176,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 147.0,
+          "latency_ms": {
+            "p50": 13.324,
+            "p90": 14.315,
+            "p99": 17.836,
+            "mean": 13.581,
+            "min": 12.529,
+            "max": 53.46,
+            "n": 1176
+          },
+          "server_cpu_pct": 94.6,
+          "mean_batch_size": 2.0,
+          "mean_queue_wait_ms": 2.67,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 39.4,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 1683.1,
+            "sm_clock_mean_mhz": 1040,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 43
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 1869,
+          "ok": 1869,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 233.6,
+          "latency_ms": {
+            "p50": 16.907,
+            "p90": 17.803,
+            "p99": 22.237,
+            "mean": 17.072,
+            "min": 15.561,
+            "max": 27.132,
+            "n": 1869
+          },
+          "server_cpu_pct": 132.6,
+          "mean_batch_size": 3.89,
+          "mean_queue_wait_ms": 2.88,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 37.3,
+            "utilization_max_pct": 40,
+            "memory_peak_mb": 1687.1,
+            "sm_clock_mean_mhz": 1434,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 44
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 2816,
+          "ok": 2816,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 352.0,
+          "latency_ms": {
+            "p50": 22.617,
+            "p90": 23.787,
+            "p99": 32.59,
+            "mean": 22.663,
+            "min": 15.011,
+            "max": 49.314,
+            "n": 2816
+          },
+          "server_cpu_pct": 194.6,
+          "mean_batch_size": 6.0,
+          "mean_queue_wait_ms": 2.97,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 40.6,
+            "utilization_max_pct": 51,
+            "memory_peak_mb": 1687.1,
+            "sm_clock_mean_mhz": 2451,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 49
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 4004,
+          "ok": 4004,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 500.5,
+          "latency_ms": {
+            "p50": 31.054,
+            "p90": 33.168,
+            "p99": 46.053,
+            "mean": 31.86,
+            "min": 28.817,
+            "max": 72.292,
+            "n": 4004
+          },
+          "server_cpu_pct": 282.0,
+          "mean_batch_size": 7.96,
+          "mean_queue_wait_ms": 3.42,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 50.0,
+            "utilization_max_pct": 56,
+            "memory_peak_mb": 1682.8,
+            "sm_clock_mean_mhz": 2706,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 50
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 3710,
+          "ok": 3710,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 463.8,
+          "latency_ms": {
+            "p50": 67.048,
+            "p90": 74.175,
+            "p99": 111.837,
+            "mean": 68.498,
+            "min": 59.261,
+            "max": 114.932,
+            "n": 3710
+          },
+          "server_cpu_pct": 276.8,
+          "mean_batch_size": 15.93,
+          "mean_queue_wait_ms": 11.7,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 48.7,
+            "utilization_max_pct": 59,
+            "memory_peak_mb": 1685.8,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 51
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 3620,
+          "ok": 3620,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 452.5,
+          "latency_ms": {
+            "p50": 135.733,
+            "p90": 145.475,
+            "p99": 182.622,
+            "mean": 138.805,
+            "min": 128.134,
+            "max": 187.589,
+            "n": 3620
+          },
+          "server_cpu_pct": 318.0,
+          "mean_batch_size": 31.54,
+          "mean_queue_wait_ms": 31.12,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 50.2,
+            "utilization_max_pct": 63,
+            "memory_peak_mb": 1829.4,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 3440,
+          "ok": 3440,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 430.0,
+          "latency_ms": {
+            "p50": 280.874,
+            "p90": 326.828,
+            "p99": 354.603,
+            "mean": 286.966,
+            "min": 267.779,
+            "max": 368.404,
+            "n": 3440
+          },
+          "server_cpu_pct": 298.3,
+          "mean_batch_size": 31.73,
+          "mean_queue_wait_ms": 171.9,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 165,
+            "utilization_mean_pct": 46.2,
+            "utilization_max_pct": 64,
+            "memory_peak_mb": 1838.1,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 53
+          }
+        }
+      ]
+    },
+    {
+      "key": "trt16-batch-raw",
+      "label": "v2: TensorRT FP16, batching, raw-body upload",
+      "endpoint": "/detect/raw",
+      "env": {
+        "VISION_MODEL": "yolo26n-fp16-dyn32.engine",
+        "VISION_MAX_BATCH_SIZE": "32",
+        "VISION_MAX_BATCH_WAIT_MS": "2"
+      },
+      "ready_seconds": 3.0,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 815,
+          "ok": 815,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 101.9,
+          "latency_ms": {
+            "p50": 9.767,
+            "p90": 10.785,
+            "p99": 12.433,
+            "mean": 9.798,
+            "min": 8.485,
+            "max": 14.425,
+            "n": 815
+          },
+          "server_cpu_pct": 69.9,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 2.6,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 24.9,
+            "utilization_max_pct": 35,
+            "memory_peak_mb": 1663.4,
+            "sm_clock_mean_mhz": 2016,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 1210,
+          "ok": 1210,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 151.2,
+          "latency_ms": {
+            "p50": 13.024,
+            "p90": 13.756,
+            "p99": 16.456,
+            "mean": 13.206,
+            "min": 12.051,
+            "max": 52.148,
+            "n": 1210
+          },
+          "server_cpu_pct": 94.8,
+          "mean_batch_size": 2.0,
+          "mean_queue_wait_ms": 2.77,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 36.8,
+            "utilization_max_pct": 41,
+            "memory_peak_mb": 1656.8,
+            "sm_clock_mean_mhz": 1091,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 44
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 2026,
+          "ok": 2026,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 253.2,
+          "latency_ms": {
+            "p50": 15.616,
+            "p90": 16.853,
+            "p99": 21.103,
+            "mean": 15.755,
+            "min": 10.497,
+            "max": 25.949,
+            "n": 2026
+          },
+          "server_cpu_pct": 137.3,
+          "mean_batch_size": 3.93,
+          "mean_queue_wait_ms": 2.81,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 39.5,
+            "utilization_max_pct": 47,
+            "memory_peak_mb": 1683.3,
+            "sm_clock_mean_mhz": 1632,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 44
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 3259,
+          "ok": 3259,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 407.4,
+          "latency_ms": {
+            "p50": 18.874,
+            "p90": 22.081,
+            "p99": 28.523,
+            "mean": 19.576,
+            "min": 13.064,
+            "max": 34.803,
+            "n": 3259
+          },
+          "server_cpu_pct": 210.7,
+          "mean_batch_size": 4.8,
+          "mean_queue_wait_ms": 2.75,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 42.5,
+            "utilization_max_pct": 57,
+            "memory_peak_mb": 1682.6,
+            "sm_clock_mean_mhz": 2654,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 48
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 4227,
+          "ok": 4227,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 528.4,
+          "latency_ms": {
+            "p50": 29.349,
+            "p90": 32.161,
+            "p99": 42.643,
+            "mean": 30.148,
+            "min": 26.39,
+            "max": 69.736,
+            "n": 4227
+          },
+          "server_cpu_pct": 282.1,
+          "mean_batch_size": 7.97,
+          "mean_queue_wait_ms": 3.57,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 54.3,
+            "utilization_max_pct": 58,
+            "memory_peak_mb": 1682.6,
+            "sm_clock_mean_mhz": 2734,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 50
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 3980,
+          "ok": 3980,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 497.5,
+          "latency_ms": {
+            "p50": 62.49,
+            "p90": 68.467,
+            "p99": 111.202,
+            "mean": 63.787,
+            "min": 55.114,
+            "max": 114.449,
+            "n": 3980
+          },
+          "server_cpu_pct": 320.0,
+          "mean_batch_size": 15.99,
+          "mean_queue_wait_ms": 11.48,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 50.1,
+            "utilization_max_pct": 61,
+            "memory_peak_mb": 1694.3,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 51
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 3964,
+          "ok": 3964,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 495.5,
+          "latency_ms": {
+            "p50": 124.037,
+            "p90": 134.595,
+            "p99": 169.816,
+            "mean": 126.994,
+            "min": 116.676,
+            "max": 172.554,
+            "n": 3964
+          },
+          "server_cpu_pct": 349.4,
+          "mean_batch_size": 31.77,
+          "mean_queue_wait_ms": 31.05,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 50.2,
+            "utilization_max_pct": 62,
+            "memory_peak_mb": 1848.2,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 3808,
+          "ok": 3808,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 476.0,
+          "latency_ms": {
+            "p50": 253.851,
+            "p90": 292.181,
+            "p99": 325.782,
+            "mean": 259.687,
+            "min": 242.771,
+            "max": 332.7,
+            "n": 3808
+          },
+          "server_cpu_pct": 356.7,
+          "mean_batch_size": 31.8,
+          "mean_queue_wait_ms": 158.2,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 164,
+            "utilization_mean_pct": 49.8,
+            "utilization_max_pct": 61,
+            "memory_peak_mb": 1850.4,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        }
+      ]
+    },
+    {
+      "key": "trt16-batch-raw-4w",
+      "label": "v2: TensorRT FP16, batching, raw body, 4 workers on one GPU",
+      "endpoint": "/detect/raw",
+      "workers": 4,
+      "env": {
+        "VISION_MODEL": "yolo26n-fp16-dyn32.engine",
+        "VISION_MAX_BATCH_SIZE": "32",
+        "VISION_MAX_BATCH_WAIT_MS": "2"
+      },
+      "ready_seconds": 7.2,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 837,
+          "ok": 837,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 104.6,
+          "latency_ms": {
+            "p50": 9.431,
+            "p90": 10.184,
+            "p99": 11.862,
+            "mean": 9.553,
+            "min": 8.491,
+            "max": 13.334,
+            "n": 837
+          },
+          "server_cpu_pct": 68.4,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 25.0,
+            "utilization_max_pct": 33,
+            "memory_peak_mb": 4047.9,
+            "sm_clock_mean_mhz": 1847,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 46
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 1484,
+          "ok": 1484,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 185.5,
+          "latency_ms": {
+            "p50": 10.785,
+            "p90": 12.386,
+            "p99": 15.064,
+            "mean": 10.769,
+            "min": 8.575,
+            "max": 18.243,
+            "n": 1484
+          },
+          "server_cpu_pct": 139.7,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 36.6,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 4044.5,
+            "sm_clock_mean_mhz": 2721,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 46
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 2568,
+          "ok": 2568,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 321.0,
+          "latency_ms": {
+            "p50": 12.192,
+            "p90": 14.079,
+            "p99": 20.092,
+            "mean": 12.444,
+            "min": 8.605,
+            "max": 34.783,
+            "n": 2568
+          },
+          "server_cpu_pct": 197.1,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 42.4,
+            "utilization_max_pct": 53,
+            "memory_peak_mb": 4047.8,
+            "sm_clock_mean_mhz": 2745,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 3721,
+          "ok": 3721,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 465.1,
+          "latency_ms": {
+            "p50": 16.272,
+            "p90": 21.852,
+            "p99": 30.539,
+            "mean": 17.167,
+            "min": 10.092,
+            "max": 72.548,
+            "n": 3721
+          },
+          "server_cpu_pct": 408.6,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 81.4,
+            "utilization_max_pct": 95,
+            "memory_peak_mb": 4048.5,
+            "sm_clock_mean_mhz": 2743,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 49
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 4848,
+          "ok": 4848,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 606.0,
+          "latency_ms": {
+            "p50": 25.955,
+            "p90": 31.833,
+            "p99": 41.641,
+            "mean": 26.308,
+            "min": 13.056,
+            "max": 57.552,
+            "n": 4848
+          },
+          "server_cpu_pct": 625.6,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 91.0,
+            "utilization_max_pct": 98,
+            "memory_peak_mb": 4049.0,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 51
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 6452,
+          "ok": 6452,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 806.5,
+          "latency_ms": {
+            "p50": 39.707,
+            "p90": 45.896,
+            "p99": 55.566,
+            "mean": 39.456,
+            "min": 18.284,
+            "max": 103.584,
+            "n": 6452
+          },
+          "server_cpu_pct": 774.8,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 94.6,
+            "utilization_max_pct": 98,
+            "memory_peak_mb": 4047.9,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 54
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 7741,
+          "ok": 7741,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 967.6,
+          "latency_ms": {
+            "p50": 62.742,
+            "p90": 86.501,
+            "p99": 96.533,
+            "mean": 65.489,
+            "min": 34.526,
+            "max": 138.717,
+            "n": 7741
+          },
+          "server_cpu_pct": 881.4,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 163,
+            "utilization_mean_pct": 90.8,
+            "utilization_max_pct": 99,
+            "memory_peak_mb": 4046.0,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 57
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 7608,
+          "ok": 7608,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 951.0,
+          "latency_ms": {
+            "p50": 124.32,
+            "p90": 167.548,
+            "p99": 200.186,
+            "mean": 131.786,
+            "min": 74.062,
+            "max": 245.75,
+            "n": 7608
+          },
+          "server_cpu_pct": 929.6,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 164,
+            "utilization_mean_pct": 92.7,
+            "utilization_max_pct": 100,
+            "memory_peak_mb": 4044.2,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 57
+          }
+        }
+      ]
+    },
+    {
+      "key": "trt16-batch-nvjpeg",
+      "label": "v2: TensorRT FP16, batching, nvJPEG decode",
+      "env": {
+        "VISION_MODEL": "yolo26n-fp16-dyn32.engine",
+        "VISION_MAX_BATCH_SIZE": "32",
+        "VISION_MAX_BATCH_WAIT_MS": "2",
+        "VISION_GPU_DECODE": "true"
+      },
+      "ready_seconds": 3.1,
+      "levels": [
+        {
+          "concurrency": 1,
+          "duration_s": 8.0,
+          "requests": 965,
+          "ok": 965,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 120.6,
+          "latency_ms": {
+            "p50": 8.116,
+            "p90": 9.152,
+            "p99": 10.199,
+            "mean": 8.279,
+            "min": 6.937,
+            "max": 10.794,
+            "n": 965
+          },
+          "server_cpu_pct": 64.3,
+          "mean_batch_size": 1.0,
+          "mean_queue_wait_ms": 2.71,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 21.0,
+            "utilization_max_pct": 32,
+            "memory_peak_mb": 1708.0,
+            "sm_clock_mean_mhz": 2355,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 50
+          }
+        },
+        {
+          "concurrency": 2,
+          "duration_s": 8.0,
+          "requests": 1324,
+          "ok": 1324,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 165.5,
+          "latency_ms": {
+            "p50": 11.997,
+            "p90": 12.888,
+            "p99": 13.685,
+            "mean": 12.064,
+            "min": 11.029,
+            "max": 15.87,
+            "n": 1324
+          },
+          "server_cpu_pct": 73.6,
+          "mean_batch_size": 2.0,
+          "mean_queue_wait_ms": 2.71,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 161,
+            "utilization_mean_pct": 36.8,
+            "utilization_max_pct": 42,
+            "memory_peak_mb": 1696.0,
+            "sm_clock_mean_mhz": 1271,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 47
+          }
+        },
+        {
+          "concurrency": 4,
+          "duration_s": 8.0,
+          "requests": 2248,
+          "ok": 2248,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 281.0,
+          "latency_ms": {
+            "p50": 13.653,
+            "p90": 16.026,
+            "p99": 17.093,
+            "mean": 14.219,
+            "min": 12.419,
+            "max": 25.468,
+            "n": 2248
+          },
+          "server_cpu_pct": 106.2,
+          "mean_batch_size": 2.41,
+          "mean_queue_wait_ms": 3.36,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 37.2,
+            "utilization_max_pct": 57,
+            "memory_peak_mb": 1696.0,
+            "sm_clock_mean_mhz": 2435,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 49
+          }
+        },
+        {
+          "concurrency": 8,
+          "duration_s": 8.0,
+          "requests": 2768,
+          "ok": 2768,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 346.0,
+          "latency_ms": {
+            "p50": 22.541,
+            "p90": 24.951,
+            "p99": 30.369,
+            "mean": 23.055,
+            "min": 19.54,
+            "max": 97.944,
+            "n": 2768
+          },
+          "server_cpu_pct": 120.5,
+          "mean_batch_size": 4.0,
+          "mean_queue_wait_ms": 5.39,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 37.7,
+            "utilization_max_pct": 47,
+            "memory_peak_mb": 1721.7,
+            "sm_clock_mean_mhz": 2625,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 49
+          }
+        },
+        {
+          "concurrency": 16,
+          "duration_s": 8.0,
+          "requests": 3361,
+          "ok": 3361,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 420.1,
+          "latency_ms": {
+            "p50": 37.309,
+            "p90": 39.607,
+            "p99": 44.271,
+            "mean": 37.899,
+            "min": 34.25,
+            "max": 112.717,
+            "n": 3361
+          },
+          "server_cpu_pct": 130.1,
+          "mean_batch_size": 8.0,
+          "mean_queue_wait_ms": 8.93,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 38.8,
+            "utilization_max_pct": 44,
+            "memory_peak_mb": 1709.2,
+            "sm_clock_mean_mhz": 2674,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 51
+          }
+        },
+        {
+          "concurrency": 32,
+          "duration_s": 8.0,
+          "requests": 3241,
+          "ok": 3241,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 405.1,
+          "latency_ms": {
+            "p50": 76.152,
+            "p90": 82.702,
+            "p99": 101.862,
+            "mean": 78.082,
+            "min": 70.144,
+            "max": 162.043,
+            "n": 3241
+          },
+          "server_cpu_pct": 117.2,
+          "mean_batch_size": 17.08,
+          "mean_queue_wait_ms": 11.2,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 162,
+            "utilization_mean_pct": 36.9,
+            "utilization_max_pct": 50,
+            "memory_peak_mb": 1851.1,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        },
+        {
+          "concurrency": 64,
+          "duration_s": 8.0,
+          "requests": 3424,
+          "ok": 3424,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 428.0,
+          "latency_ms": {
+            "p50": 144.785,
+            "p90": 148.342,
+            "p99": 210.606,
+            "mean": 146.624,
+            "min": 130.439,
+            "max": 216.421,
+            "n": 3424
+          },
+          "server_cpu_pct": 130.8,
+          "mean_batch_size": 31.85,
+          "mean_queue_wait_ms": 46.19,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 164,
+            "utilization_mean_pct": 45.7,
+            "utilization_max_pct": 58,
+            "memory_peak_mb": 1849.7,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        },
+        {
+          "concurrency": 128,
+          "duration_s": 8.0,
+          "requests": 3328,
+          "ok": 3328,
+          "shed_503": 0,
+          "failed": 0,
+          "throughput_rps": 416.0,
+          "latency_ms": {
+            "p50": 291.077,
+            "p90": 352.125,
+            "p99": 359.595,
+            "mean": 297.691,
+            "min": 277.053,
+            "max": 365.959,
+            "n": 3328
+          },
+          "server_cpu_pct": 132.5,
+          "mean_batch_size": 31.9,
+          "mean_queue_wait_ms": 189.82,
+          "gpu": {
+            "available": true,
+            "name": "NVIDIA GeForce RTX 4060",
+            "samples": 165,
+            "utilization_mean_pct": 41.3,
+            "utilization_max_pct": 56,
+            "memory_peak_mb": 1849.0,
+            "sm_clock_mean_mhz": 2730,
+            "power_mean_w": null,
+            "power_limit_w": 130.0,
+            "temperature_max_c": 52
+          }
+        }
+      ]
+    }
+  ]
+}

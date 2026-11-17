@@ -1,0 +1,54 @@
+# Prometheus Operator scrape config, and KEDA autoscaling driven by it.
+#
+# Why autoscale on request rate rather than GPU utilisation: NVML utilisation
+# reads "a kernel was running", so it saturates near 100% long before
+# throughput does (see README, "Measured results"), and it says nothing about
+# latency. Request rate against a benchmarked per-replica capacity is the
+# signal that maps to an SLO.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: yolo26
+  labels: {app: yolo26}
+spec:
+  selector:
+    matchLabels: {app: yolo26}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 5s
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: yolo26
+spec:
+  scaleTargetRef:
+    name: yolo26
+  minReplicaCount: 4   # one physical GPU, time-sliced four ways
+  maxReplicaCount: 16  # four GPUs
+  cooldownPeriod: 300  # a replica takes ~10 s to start and warm; don't flap
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+  triggers:
+    # Target per replica = 70% of a quarter of what one RTX 4060 sustained
+    # within a 50 ms p99 with four single-worker processes sharing it
+    # (TensorRT FP16, dynamic batching, raw-body uploads).
+    # Re-derive it for your GPU and image size: tools/bench_service.py.
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: http://prometheus-operated.monitoring.svc:9090
+        query: sum(rate(vision_requests_total{outcome="ok"}[1m]))
+        threshold: "106"  # 0.7 x 606 req/s / 4 replicas
+    # Backstop: requests already waiting for a GPU. Sustained queueing means
+    # latency is growing whatever the request-rate target says.
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: http://prometheus-operated.monitoring.svc:9090
+        query: sum(vision_queue_depth)
+        threshold: "32"

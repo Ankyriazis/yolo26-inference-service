@@ -1,40 +1,59 @@
+# CPU:  docker compose -f docker/compose.yaml up --build
+# GPU:  docker compose -f docker/compose.yaml --profile gpu up --build detector-gpu
+#       (needs the NVIDIA Container Toolkit on the host)
+#
+# With --profile observability, Prometheus scrapes both services at :9090.
+
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop: [ALL]
+  tmpfs:
+    - /tmp
+  restart: unless-stopped
+
 services:
   detector:
+    <<: *hardening
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: yolo26-inference-service:latest
+      args:
+        EXTRA: cpu
+    image: yolo26-inference-service:cpu
     ports:
       - "8000:8000"
     environment:
-      VISION_MODEL: yolo26n.pt
-      VISION_CONFIDENCE: "0.25"
-      VISION_IMAGE_SIZE: "640"
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /tmp
+      VISION_PIPELINE: ultralytics
+      VISION_MAX_BATCH_SIZE: "8"
     deploy:
       resources:
         limits:
           memory: 4G
-    restart: unless-stopped
 
-  # NVIDIA GPUs. Requires the NVIDIA Container Toolkit on the host, and an
-  # image built on a CUDA base rather than python:slim - see README.md.
-  # Start with:  docker compose --profile gpu up detector-gpu
   detector-gpu:
+    <<: *hardening
     profiles: ["gpu"]
     build:
       context: ..
-      dockerfile: docker/Dockerfile.gpu
+      dockerfile: docker/Dockerfile
+      args:
+        EXTRA: gpu
     image: yolo26-inference-service:gpu
     ports:
       - "8001:8000"
     environment:
-      VISION_MODEL: yolo26n.pt
-      VISION_DEVICE: "cuda:0"
+      # PyTorch weights out of the box. For TensorRT, mount an engine built on
+      # this GPU model (tools/export.py) and point VISION_MODEL at it.
+      VISION_PIPELINE: gpu
+      VISION_HALF: "true"
+      # Several workers share the GPU: one Python process cannot keep it busy.
+      # Each worker serves its own /metrics, so a scrape sees one worker; in
+      # Kubernetes, prefer one worker per pod with GPU time-slicing instead.
+      WEB_CONCURRENCY: "4"
+      VISION_MAX_BATCH_SIZE: "32"
+      VISION_MAX_BATCH_WAIT_MS: "2"
     deploy:
       resources:
         reservations:
@@ -42,4 +61,23 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    restart: unless-stopped
+
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus:v3.16.0
+    ports:
+      - "9090:9090"
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+
+configs:
+  prometheus:
+    content: |
+      global:
+        scrape_interval: 5s
+      scrape_configs:
+        - job_name: yolo26
+          static_configs:
+            - targets: ["detector:8000", "detector-gpu:8000"]
