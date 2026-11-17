@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # No GPU here, and none needed: the detector is injected, so the whole
+    # request path - batching, load shedding, error isolation - runs on CPU.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.13.9"
+          enable-cache: true
+      - name: Install (CPU build of torch, from the lockfile only)
+        run: uv sync --frozen --extra cpu --no-group export --no-group bench
+      - name: Lint
+        run: |
+          uv run --no-sync ruff check src tests tools
+          uv run --no-sync ruff format --check src tests tools
+      - name: Test
+        run: uv run --no-sync pytest -q
+
+  image:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build the CPU image (not pushed)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          build-args: EXTRA=cpu
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

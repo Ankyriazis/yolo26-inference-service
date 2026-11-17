@@ -4,14 +4,24 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 
-# Model weights: downloaded on demand, too large to track
+# Model artifacts: downloaded or built on demand, too large to track, and
+# TensorRT engines are only valid on the GPU model that built them.
 *.pt
 *.onnx
 *.engine
+*.engine.json
+*.onnx.json
+timing.cache
+
+# Benchmark scratch. results/*.json (the evidence) is committed; the
+# per-run append logs are not.
+results/*.jsonl
 
 # Outputs
 output/
+runs/
 *.log
 
 # Editors / OS
